@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build and Run SDL3 Project",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "g++ -Wall -Wextra -std=c++17 -I/usr/include/SDL3 -D_REENTRANT -o Playit main.cpp -L/usr/lib -lSDL3 -lSDL3_ttf -lSDL3_mixer -lSDL3_image && ./Playit"
+
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Compiles and runs the SDL3 project."
+        }
+    ]
+}
