@@ -3,7 +3,7 @@
     "configurations": [
 
         {
-            "name": "Debug SDL3 Project",
+            "name": "Prototype Environment",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/main",
