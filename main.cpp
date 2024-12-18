@@ -5,6 +5,8 @@
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_mouse.h>
 #include <string>
 #include "src/BasedSetup.h"
 #include "src/LoadObjects.h"
@@ -16,14 +18,16 @@ int main() {
 
     SDL_Event event;
     int running = true;
+    bool showPopup = false;
 
-    float Xpos = 0.0f;
-    float Ypos = 0.0f;
-    const float speed = 300.0f;
+    float Xpos = 2515.0f;
+    float Ypos = 570.0f;
+    const float speed = 600.0f;
 
     //Initialization
     Initialization Setup(3440, 1440);
     SDL_Renderer* renderer = Setup.getRenderer();
+    SDL_Window* window = Setup.getWindow();
 
     // Load Font
     Setup.setFont();
@@ -31,6 +35,7 @@ int main() {
     TTF_Font* font = loadFont(fontPath, 40, Setup);
 
     SDL_FRect textBox = {10.0f, 0.0f, 400.0f, 100.0f};
+
     //Load Music
     Setup.setAudio();
     Mix_Music *music = loadmusic("assets/audio/bee.mp3");
@@ -38,20 +43,43 @@ int main() {
 
     //Load Character
     std::string filePath = "assets/images/Charlft.bmp";
-    SDL_Texture* texture = loadMan(filePath, Setup, renderer);
-    SDL_FRect Chpos = { Xpos, Ypos, 200.0f, 125.0f };
+    SDL_Texture* texture = loadAsset(filePath, Setup, renderer);
+    SDL_FRect Chpos = { Xpos, Ypos, 1200.0f, 900.0f };
     
     //Load Background
-    std::string bgPath = "assets/images/background.jpg";
-    SDL_Texture* background = loadBG(bgPath, Setup, renderer);
+    std::string bgPath = "assets/images/backgrounds/FrontDoorHallway.bmp";
+    SDL_Texture* background = loadAsset(bgPath, Setup, renderer);
+
+    SDL_SetWindowFullscreen(window, true);
+
+    TTF_Font* fonta = TTF_OpenFont("/usr/share/fonts/TTF/DejaVuSans.ttf", 24);
+    SDL_FRect button = {300, 250, 200, 100};
+    bool buttonHovered = false;
+
+
 
 
     // Delta time calculation variables
     Uint64 currentTime = SDL_GetTicksNS();
     Uint64 previousTime = currentTime;
     float deltaTime = 0.0f;
-
     while (running) {
+
+        float mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        buttonHovered = CheckMouseInside(button, mouseX, mouseY);
+
+        if (buttonHovered){
+
+            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
+            SDL_SetCursor(handCursor);
+        } else {
+
+            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+            SDL_SetCursor(handCursor);
+
+        }
 
         //Smooth Movement
         currentTime = SDL_GetTicksNS();
@@ -71,6 +99,22 @@ int main() {
                     std::cout << "Escape key pressed! Exiting..." << std::endl;
                     running = false;
                 }
+
+
+                if ((Xpos >= 1160.0f) && (Xpos <= 1550.0f) && (keyEvent.key == SDLK_RETURN)){
+                    showPopup = true;
+                    
+                } else if ((Xpos <= -400) && (keyEvent.key == SDLK_Q)){
+                    showPopup = true;
+                } else if ((Xpos >= 2470) && (keyEvent.key == SDLK_RETURN)){
+                    showPopup = true;
+                }
+            }
+
+            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
+                if(buttonHovered){
+                    cout << "Button clicked!" << std::endl;
+                }
             }
         }
 
@@ -78,12 +122,12 @@ int main() {
         const bool* keyState = SDL_GetKeyboardState(NULL);
         
         // X Position
-        if (keyState[SDL_SCANCODE_LEFT] && Xpos >= -65){       
+        if (keyState[SDL_SCANCODE_LEFT] && Xpos >= -470){       
             Xpos -= speed * deltaTime;
             filePath = "assets/images/Charlft.bmp";
             reloadChar(filePath, texture, renderer);
         }
-        if (keyState[SDL_SCANCODE_RIGHT] && Xpos <= 3315){ 
+        if (keyState[SDL_SCANCODE_RIGHT] && Xpos <= 2650){ 
             
             Xpos += speed * deltaTime;
             filePath = "assets/images/CharRght.bmp";
@@ -91,16 +135,18 @@ int main() {
         }
 
         // Y Position
-        if (keyState[SDL_SCANCODE_UP] && Ypos >= -10){
-            Ypos -= speed * deltaTime;
-        }
-        if (keyState[SDL_SCANCODE_DOWN] && Ypos <= 1300){
-            Ypos += speed * deltaTime;
-        }  
-
+        // if (keyState[SDL_SCANCODE_UP] && Ypos >= -10){
+        //     Ypos -= speed * deltaTime;
+        // }
+        // if (keyState[SDL_SCANCODE_DOWN] && Ypos <= 1300){
+        //     Ypos += speed * deltaTime;
+        // }  
 
         Chpos.x = Xpos;
         Chpos.y = Ypos;
+
+
+
 
         //Display X and Y Position
         string positionText = "X: " + std::to_string((int)Xpos) + "; Y: " + std::to_string((int)Ypos);
@@ -109,9 +155,9 @@ int main() {
         SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
 
-
+        // 1160-1550 = Stairs // X<-470
         //Display Background
-        SDL_FRect bgRect = { 0.0f, 0.0f, 3440.0f, 1440.0f }; // Full window
+        SDL_FRect bgRect = { 0.0f, 0.0f, 3440.0f, 1440.0f}; // Full window
         SDL_RenderTexture(renderer, background, NULL, &bgRect);
 
         //Display Character
@@ -124,6 +170,14 @@ int main() {
         SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
 
 
+
+        if (showPopup){
+            SDL_FRect textbox = {200, 200, 400, 100};
+            LoadTextBox(renderer, font, "Hello, World!", textbox);
+        }
+
+        LoadButton(renderer, fonta, "Go To Kitchen", button, buttonHovered);
+
         //Display Graphics
         SDL_RenderPresent(renderer);
         SDL_DestroySurface(textSurface);
@@ -131,13 +185,17 @@ int main() {
         SDL_Delay(1); // Small delay to avoid maxing out CPU
     }
 
-
     
 
     // Cleanup
     TTF_CloseFont(font);
-    Mix_FreeMusic(music);
+    // Mix_FreeMusic(music);
     Setup.cleanup();
 
     return 0;
 }
+
+
+//git add . 
+//git commit -m "Message"
+//git push

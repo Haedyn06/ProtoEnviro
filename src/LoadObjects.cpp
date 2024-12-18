@@ -5,6 +5,7 @@
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <string>
 #include "BasedSetup.h"
 
 Mix_Music* loadmusic(const std::string& Path) {
@@ -16,7 +17,7 @@ Mix_Music* loadmusic(const std::string& Path) {
 }
 
 
-SDL_Texture* loadMan(std::string filePath, Initialization &Setup, SDL_Renderer* renderer){
+SDL_Texture* loadAsset(std::string filePath, Initialization &Setup, SDL_Renderer* renderer){
     SDL_Surface* bmpSurface = SDL_LoadBMP(filePath.c_str());
     Setup.setBitmap(bmpSurface);
 
@@ -37,6 +38,55 @@ TTF_Font* loadFont(std::string fontPath, int fontSize, Initialization &Setup){
     TTF_Font* font = TTF_OpenFont(fontPath.c_str(), fontSize);
     Setup.failedfontLoad(font);
     return font;
+}
+
+
+void LoadTextBox(SDL_Renderer* renderer, TTF_Font* font, const std::string& message, SDL_FRect textbox) {
+    // Text color
+    SDL_Color textColor = {255, 255, 255, 255}; // White
+
+    // Create a surface and texture for the text
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, message.c_str(), message.length(), textColor);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    // Draw the box background
+    SDL_SetRenderDrawColor(renderer, 49, 179, 233, 255); // Blue background
+    SDL_RenderFillRect(renderer, &textbox);
+
+    // Render the text inside the box
+    SDL_FRect textRect = {textbox.x + 10, textbox.y + 10, (float)textSurface->w, (float)textSurface->h};
+    SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
+
+    // Cleanup
+    SDL_DestroySurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+}
+
+
+bool CheckMouseInside(SDL_FRect button, int mouseX, int mouseY) {
+    return mouseX >= button.x && mouseX <= (button.x + button.w) &&
+           mouseY >= button.y && mouseY <= (button.y + button.h);
+}
+
+void LoadButton(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, SDL_FRect button, bool hovered) {
+    SDL_Color color = hovered ? SDL_Color{100, 149, 237, 255} : SDL_Color{70, 130, 180, 255}; // Blue shades
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_RenderFillRect(renderer, &button);
+
+    SDL_Color textColor = {255, 255, 255, 255}; // White text
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text.c_str(), text.length(), textColor);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    SDL_FRect textRect = {
+        button.x + (button.w - textSurface->w) / 2,
+        button.y + (button.h - textSurface->h) / 2,
+        (float)textSurface->w, (float)textSurface->h
+    };
+
+    SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
+
+    SDL_DestroySurface(textSurface);
+    SDL_DestroyTexture(textTexture);
 }
 
 void reloadChar(const std::string& filePath, SDL_Texture*& texture, SDL_Renderer* renderer) {

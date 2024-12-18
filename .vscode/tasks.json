@@ -7,7 +7,7 @@
             "command": "bash",
             "args": [
                 "-c",
-                "g++ -Wall -Wextra -std=c++17 -I/usr/include/SDL3 -D_REENTRANT -o protoEnviro main.cpp src/BasedSetup.cpp src/LoadObjects.cpp -L/usr/lib -lSDL3 -lSDL3_ttf -lSDL3_mixer -lSDL3_image && ./protoEnviro"
+                "g++ -Wall -Wextra -std=c++17 -I/usr/include/SDL3 -D_REENTRANT -o protoEnviro main.cpp src/BasedSetup.cpp src/LoadObjects.cpp src/Enviro.cpp -L/usr/lib -lSDL3 -lSDL3_ttf -lSDL3_mixer -lSDL3_image && ./protoEnviro"
 
             ],
             "group": {
