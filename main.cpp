@@ -10,22 +10,25 @@
 #include <string>
 #include "src/BasedSetup.h"
 #include "src/LoadObjects.h"
+#include "src/GUIpopup.h"
 
 using std::string;
 using std::cout;
 
 int main() {
 
+    const int WindowX = 3440;
+    const int WindowY = 1440;
+
     SDL_Event event;
     int running = true;
-    bool showPopup = false;
 
     float Xpos = 2515.0f;
     float Ypos = 570.0f;
     const float speed = 600.0f;
 
     //Initialization
-    Initialization Setup(3440, 1440);
+    Initialization Setup(WindowX, WindowY);
     SDL_Renderer* renderer = Setup.getRenderer();
     SDL_Window* window = Setup.getWindow();
 
@@ -52,39 +55,48 @@ int main() {
 
     SDL_SetWindowFullscreen(window, true);
 
-    TTF_Font* fonta = TTF_OpenFont("/usr/share/fonts/TTF/DejaVuSans.ttf", 24);
-    SDL_FRect button = {300, 250, 200, 100};
-    bool buttonHovered = false;
+    // TTF_Font* fonta = TTF_OpenFont("/usr/share/fonts/TTF/DejaVuSans.ttf", 24);
+    // SDL_FRect button = {300, 250, 200, 100};
+    // bool buttonHovered = false;
 
+    //Load GUI
+    GUIPopup InitialGUI(WindowX, WindowY, 50.0f);
+    SDL_FRect gui = InitialGUI.getGUI();
+    SDL_FRect buttonY = InitialGUI.getButtonY();
+    SDL_FRect buttonN = InitialGUI.getButtonN();
 
-
+    float slideSpeed = 3.0f;
+    bool buttonHoverY = false;
+    bool buttonHoverN = false;
+    bool clicked = false;
 
     // Delta time calculation variables
     Uint64 currentTime = SDL_GetTicksNS();
     Uint64 previousTime = currentTime;
     float deltaTime = 0.0f;
+
     while (running) {
-
-        float mouseX, mouseY;
-        SDL_GetMouseState(&mouseX, &mouseY);
-
-        buttonHovered = CheckMouseInside(button, mouseX, mouseY);
-
-        if (buttonHovered){
-
-            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
-            SDL_SetCursor(handCursor);
-        } else {
-
-            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-            SDL_SetCursor(handCursor);
-
-        }
 
         //Smooth Movement
         currentTime = SDL_GetTicksNS();
         deltaTime = (currentTime - previousTime) / 1e9f;
         previousTime = currentTime;
+
+
+        float mouseX;
+        float mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        buttonHoverY = CheckMouseInside(buttonY, mouseX, mouseY);
+        buttonHoverN = CheckMouseInside(buttonN, mouseX, mouseY);
+        
+        if (buttonHoverY || buttonHoverN ){
+            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
+            SDL_SetCursor(handCursor);
+        } else{
+            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+            SDL_SetCursor(handCursor);
+        }
+
 
         //Event Handling
         while (SDL_PollEvent(&event)) {
@@ -102,18 +114,20 @@ int main() {
 
 
                 if ((Xpos >= 1160.0f) && (Xpos <= 1550.0f) && (keyEvent.key == SDLK_RETURN)){
-                    showPopup = true;
+                    clicked = true;
                     
-                } else if ((Xpos <= -400) && (keyEvent.key == SDLK_Q)){
-                    showPopup = true;
+                } else if ((Xpos <= -400) && (keyEvent.key == SDLK_RETURN)){
+                    clicked = true;
                 } else if ((Xpos >= 2470) && (keyEvent.key == SDLK_RETURN)){
-                    showPopup = true;
+                    clicked = true;
                 }
             }
-
+            
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
-                if(buttonHovered){
-                    cout << "Button clicked!" << std::endl;
+                if ((mouseX >= buttonN.x && mouseX <= buttonN.x + buttonN.w) && (mouseY >= buttonN.y && mouseY <= buttonN.y + buttonN.h)) {
+                    std::cout << "Clicked" << std::endl;
+                    clicked = false;
+                    gui.y = WindowY + 100;
                 }
             }
         }
@@ -170,13 +184,7 @@ int main() {
         SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
 
 
-
-        if (showPopup){
-            SDL_FRect textbox = {200, 200, 400, 100};
-            LoadTextBox(renderer, font, "Hello, World!", textbox);
-        }
-
-        LoadButton(renderer, fonta, "Go To Kitchen", button, buttonHovered);
+        InitialGUI.popUp("Go to Kitchen?", clicked, slideSpeed, WindowY, renderer, buttonHoverY, buttonHoverN);
 
         //Display Graphics
         SDL_RenderPresent(renderer);
