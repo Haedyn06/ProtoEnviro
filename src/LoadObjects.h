@@ -5,6 +5,7 @@
 #include "BasedSetup.h"
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#include "GUIpopup.h"
 
 Mix_Music* loadmusic(const std::string& Path);
 TTF_Font* loadFont(std::string fontPath, int fontSize, Initialization &Setup);
@@ -14,8 +15,9 @@ void LoadTextBox(SDL_Renderer* renderer, TTF_Font* font, const std::string& mess
 bool CheckMouseInside(SDL_FRect button, int mouseX, int mouseY);
 void LoadButton(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, SDL_FRect button, bool hovered);
 void reloadChar(const std::string& filePath, SDL_Texture*& texture, SDL_Renderer* renderer);
-
-
+void loadPopup(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline, SDL_FRect& Inlined, std::string Msg);
+void Notif(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white);
+void KeyDecision(bool& popsup, SDL_KeyboardEvent& Keyevent, bool& Accept);
 
 
 #endif

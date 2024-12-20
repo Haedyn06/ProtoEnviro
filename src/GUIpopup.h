@@ -5,37 +5,33 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 
-class GUIPopup {
-
+class PopupGUI {
 private:
-    SDL_Color color;
-    SDL_Color GUIcolor = {91, 195, 250, 0};
-    SDL_Color txtColor {255, 255, 255, 255};
-    SDL_Color colorPY = {35, 89, 117, 0};
-    SDL_Color colorHY = {56, 181, 33, 0};
+    float WindowX;
+    float WindowY;
+    SDL_Renderer* renderer;
+    
 
-    SDL_Color colorPN = {35, 89, 117, 0};
-    SDL_Color colorHN = {255, 75, 63, 0};
-    TTF_Font* Promptfont = TTF_OpenFont("/usr/share/fonts/TTF/Super Morning.ttf", 100);
+    TTF_Font* fontDialogue = TTF_OpenFont("/usr/share/fonts/TTF/DePixelHalbfett.ttf", 45);
+    std::string currentText = "";
+    size_t textIndex = 0;
+    std::string text;
+    int delayMs;
 
-    SDL_FRect gui;
-    SDL_FRect buttonY;
-    SDL_FRect buttonN;
-
-    float Gwidth;
-    float Gheight;
-    float GposX;
-    float GposY;
+    bool fadingOut = true;
+    int alpha = 0;
+    int fadeStep = 3;   
 
 public:
-    SDL_FRect getGUI();
-    SDL_FRect getButtonY();
-    SDL_FRect getButtonN();
-
-    GUIPopup(const int WindowX, const int WindowY, float Padding);
-    void declareGUI(int WindowX, int WindowY, float Padding);
-    void buildGUI(std::string message, SDL_Renderer* renderer, bool buttonHoverY, bool buttonHoverN);
-    void popUp(std::string message, bool clicked, float slideSpeed, const int WindowY, SDL_Renderer* renderer, bool buttonHoverY, bool buttonHoverN);
+    PopupGUI(float windowx, float windowy, SDL_Renderer* Renderer);
+    void SetupGUI(SDL_FRect &Outline, SDL_FRect &Main);
+    void renderGUI(SDL_FRect outline, SDL_FRect inlined);
+    void setEffect(std::string Text, int DelayMS);
+    void LoadEffect(SDL_Color white, SDL_FRect Gui, int paddX, int paddY);
+    void Fadingin();
+    void Fadingout();
+    void Response();
+    bool isFadeComplete();
 };
 
 

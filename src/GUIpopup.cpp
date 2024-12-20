@@ -1,139 +1,130 @@
 #include <iostream>
+#include <cmath>
+#include <string>
+#include <thread>
+#include <chrono>
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_rect.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_surface.h>
+#include <SDL3_mixer/SDL_mixer.h>
+#include <SDL3/SDL_surface.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
-#include <cmath>
+
+#include "BasedSetup.h"
 #include "GUIpopup.h"
+#include "LoadObjects.h"
 
 
-void loadFontInside(std::string msg, TTF_Font* font, SDL_FRect gui, int paddX, int paddY, float Width, float Height, SDL_Color Color, SDL_Renderer* renderer);
-void LoadButton(SDL_Renderer* renderer, SDL_FRect button, bool hovered, SDL_Color color, SDL_Color ColorPrimary, SDL_Color ColorHover, float cornerRadius);
-void DrawFilledCircle(SDL_Renderer* renderer, int centerX, int centerY, int radius);
-void DrawRoundedRect(SDL_Renderer* renderer, SDL_FRect rect, float radius);
-bool CheckMouseInside(SDL_FRect button, int mouseX, int mouseY);
+using std::string;
+using std::cout;
+void loadFontInside(std::string msg, TTF_Font* font, SDL_FRect gui, int paddX, int paddY, SDL_Color Color, SDL_Renderer* renderer);
 
-SDL_FRect GUIPopup::getGUI(){
-    return gui;
-}
-SDL_FRect GUIPopup::getButtonY(){
-    return buttonY;
-}
-SDL_FRect GUIPopup::getButtonN(){
-    return buttonN;
+PopupGUI::PopupGUI(float windowx, float windowy, SDL_Renderer* Renderer){
+    WindowX = windowx;
+    WindowY = windowy;
+    renderer = Renderer;
 }
 
-
-
-GUIPopup::GUIPopup(const int WindowX, const int WindowY, float Padding){
-    declareGUI(WindowX, WindowY, Padding);
+void PopupGUI::SetupGUI(SDL_FRect &Outline, SDL_FRect &Main) {
+    float OutlineH = WindowY / 3;
+    Outline = {0, WindowY - OutlineH, WindowX, OutlineH};
+    Main = {Outline.x + 10, Outline.y + 10, Outline.w - 20, Outline.h - 20};
 }
 
-void GUIPopup::declareGUI(int WindowX, int WindowY, float Padding){
-
-    Gwidth = (WindowX/2);
-    Gheight = (WindowY/2);
-    GposX = (WindowX/2) - (Gwidth/2);
-    GposY = (WindowY/2) - (Gheight/2);
-
-    const float Bwidth = Gwidth/3;
-    const float Bheight = Gheight/5;
-    const float BposY =  (GposY + Gheight) - (Bheight + Padding);
-    const float BYesXpos = (GposX + Padding);
-    const float BNoXpos = (GposX + Gwidth) - (Bwidth + Padding);
-
-    gui = {GposX, GposY, Gwidth, Gheight};
-    buttonY = {BYesXpos, BposY, Bwidth, Bheight};
-    buttonN = {BNoXpos, BposY, Bwidth, Bheight};
+void PopupGUI::renderGUI(SDL_FRect outline, SDL_FRect inlined) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 200); // Semi-transparent white
+    SDL_RenderFillRect(renderer, &outline);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);       // Solid black
+    SDL_RenderFillRect(renderer, &inlined);
 }
 
-void GUIPopup::buildGUI(std::string message, SDL_Renderer* renderer, bool buttonHoverY, bool buttonHoverN){
-
-    SDL_SetRenderDrawColor(renderer, GUIcolor.r, GUIcolor.g, GUIcolor.b, GUIcolor.a);
-    DrawRoundedRect(renderer, gui, 20.0f);
-    loadFontInside(message, Promptfont, gui, 50, 20, 400, 64, txtColor, renderer);
-
-    LoadButton(renderer, buttonY, buttonHoverY, color, colorPY, colorHY, 20.0f);
-    loadFontInside("Ok", Promptfont, buttonY, 80, 15, buttonY.w - 250, buttonY.h - 30, txtColor, renderer);
-
-    LoadButton(renderer, buttonN, buttonHoverN, color, colorPN, colorHN, 20.0f);
-    loadFontInside("Cancel", Promptfont, buttonN, 30, 15, buttonN.w - 100, buttonN.h - 2, txtColor, renderer);
+void PopupGUI::setEffect(std::string Text, int DelayMS){
+    text = Text;
+    delayMs = DelayMS;
 }
 
+void PopupGUI::LoadEffect(SDL_Color white, SDL_FRect Gui, int paddX, int paddY){
 
-void GUIPopup::popUp(std::string message, bool clicked, float slideSpeed, const int WindowY, SDL_Renderer* renderer, bool buttonHoverY, bool buttonHoverN) {
-    if (clicked) {
-        if (gui.y > GposY) { // Slide up
-            gui.y -= slideSpeed;
-        }
-    } else {
-        if (gui.y < WindowY + 100) { // Slide back down
-            gui.y += slideSpeed;
-        }
+    if (textIndex < text.size()) {
+        currentText += text[textIndex++];
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+    } else{
+        loadFontInside("(Y/N)", fontDialogue, Gui, 30, 20, white, renderer);
     }
 
-    // Always recalculate button positions relative to gui
-    buttonY.y = gui.y + Gheight - buttonY.h - 50;
-    buttonN.y = gui.y + Gheight - buttonN.h - 50;
+    SDL_Surface* textSurface = TTF_RenderText_Solid(fontDialogue, currentText.c_str(), currentText.length(), white);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
-    // Draw GUI and buttons
-    buildGUI(message, renderer, buttonHoverY, buttonHoverN);
+    int textWidth = textSurface->w;
+    int textHeight = textSurface->h;
+
+    SDL_FRect textRects = {
+        std::round(Gui.x + paddX),
+        std::round(Gui.y + paddY),
+        std::round(static_cast<float>(textWidth)),
+        std::round(static_cast<float>(textHeight))
+    };
+
+    SDL_RenderTexture(renderer, textTexture, nullptr, &textRects);
 }
 
-void loadFontInside(std::string msg, TTF_Font* font, SDL_FRect gui, int paddX, int paddY, float Width, float Height, SDL_Color Color, SDL_Renderer* renderer){
-    SDL_FRect GUItxt = {gui.x + paddX, gui.y + paddY, Width, Height};
+
+void PopupGUI::Fadingin(){
+    alpha -= fadeStep;
+    if (alpha <= 0) {
+        alpha = 0;
+        // fadingOut = false; // Switch to fade in
+    }
+
+    // Render a semi-transparent rectangle overlay
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, alpha); // Black with variable alpha
+    SDL_FRect fadeRect = {0, 0, WindowX, WindowY};    // Full-screen rectangle
+    SDL_RenderFillRect(renderer, &fadeRect);
+}
+
+
+
+void PopupGUI::Fadingout(){
+    alpha += fadeStep;
+    if (alpha >= 255) {
+        alpha = 255;
+        SDL_Delay(1200);
+        fadingOut = false; // Switch to fade out
+    }
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, alpha); // Black with variable alpha
+    SDL_FRect fadeRect = {0, 0, WindowX, WindowY};    // Full-screen rectangle
+    SDL_RenderFillRect(renderer, &fadeRect);
+
+}
+
+
+void PopupGUI::Response(){
+    if (fadingOut){
+        Fadingout();
+    } else {
+        Fadingin();
+    }
+}
+
+
+bool PopupGUI::isFadeComplete() {
+    return (alpha == 0); // Fade is complete when alpha is fully in or out
+}
+
+void loadFontInside(std::string msg, TTF_Font* font, SDL_FRect gui, int paddX, int paddY, SDL_Color Color, SDL_Renderer* renderer){
+
     SDL_Surface* textSurface = TTF_RenderText_Solid(font, msg.c_str(), msg.length() ,Color);
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    int textWidth = textSurface->w;
+    int textHeight = textSurface->h;
+
+    SDL_FRect GUItxt = {std::round((gui.x + gui.w) - (textWidth + paddX)), std::round((gui.y + gui.h) - (textHeight + paddY)), std::round(static_cast<float>(textWidth)), std::round(static_cast<float>(textHeight))};
     SDL_RenderTexture(renderer, textTexture, nullptr, &GUItxt);
-}
-
-// Function to draw a filled circle (needed for rounded corners)
-void DrawFilledCircle(SDL_Renderer* renderer, int centerX, int centerY, int radius) {
-    for (int w = 0; w <= radius * 2; w++) {
-        for (int h = 0; h <= radius * 2; h++) {
-            int dx = radius - w; // Distance from center x
-            int dy = radius - h; // Distance from center y
-            if ((dx * dx + dy * dy) <= (radius * radius)) {
-                SDL_RenderPoint(renderer, centerX + dx, centerY + dy);
-            }
-        }
-    }
-}
-
-// Function to draw a rounded rectangle
-void DrawRoundedRect(SDL_Renderer* renderer, SDL_FRect rect, float radius) {
-    // Ensure the radius does not exceed half the width/height
-    if (radius > rect.w / 2.0f) radius = rect.w / 2.0f;
-    if (radius > rect.h / 2.0f) radius = rect.h / 2.0f;
-
-    // Draw center rectangle (main body without corners)
-    SDL_FRect centerRect = { rect.x + radius, rect.y, rect.w - 2 * radius, rect.h };
-    SDL_RenderFillRect(renderer, &centerRect);
-
-    SDL_FRect verticalRect = { rect.x, rect.y + radius, rect.w, rect.h - 2 * radius };
-    SDL_RenderFillRect(renderer, &verticalRect);
-
-    // Draw 4 filled circles for the corners
-    DrawFilledCircle(renderer, rect.x + radius, rect.y + radius, radius);                        // Top-left
-    DrawFilledCircle(renderer, rect.x + rect.w - radius, rect.y + radius, radius);              // Top-right
-    DrawFilledCircle(renderer, rect.x + radius, rect.y + rect.h - radius, radius);              // Bottom-left
-    DrawFilledCircle(renderer, rect.x + rect.w - radius, rect.y + rect.h - radius, radius);     // Bottom-right
-}
-
-bool CheckMouseInside(SDL_FRect button, float mouseX, float mouseY) {
-    return mouseX >= button.x && mouseX <= (button.x + button.w) &&
-           mouseY >= button.y && mouseY <= (button.y + button.h);
-}
-
-void LoadButton(SDL_Renderer* renderer, SDL_FRect button, bool hovered, SDL_Color color, SDL_Color ColorPrimary, SDL_Color ColorHover, float cornerRadius) {
-
-    if (hovered){
-        color = ColorHover;
-    } else{
-        color = ColorPrimary;
-    }
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    // SDL_RenderFillRect(renderer, &button);
-    DrawRoundedRect(renderer, button, cornerRadius);
 }

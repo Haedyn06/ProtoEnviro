@@ -7,6 +7,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <string>
 #include "BasedSetup.h"
+#include "GUIpopup.h"
 
 Mix_Music* loadmusic(const std::string& Path) {
     Mix_Music* music = Mix_LoadMUS(Path.c_str());
@@ -100,4 +101,42 @@ void reloadChar(const std::string& filePath, SDL_Texture*& texture, SDL_Renderer
     }
 }
 
+void loadPopup(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline, SDL_FRect& Inlined, std::string Msg){
+    popsup = true;
+    Accept = false;
+    popup->SetupGUI(Outline, Inlined);
+    popup->setEffect(Msg, 25);
+}
 
+void Notif(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white){
+
+    if (popsup) {
+        if (Accept) {
+            popup->Response();
+
+            // Check if fading is complete
+            if (popup->isFadeComplete()) {
+                std::cout << "Fade complete!" << std::endl;
+                Accept = false; // Reset Accept to prevent repeated fading
+                popsup = false; // Optionally close the popup
+            }
+        } else {
+            popup->renderGUI(Outline, Inlined);
+            popup->LoadEffect(white, Inlined, 40, 40);
+        }
+    }
+}
+
+
+void KeyDecision(bool& popsup, SDL_KeyboardEvent& Keyevent, bool& Accept){
+    if (popsup){
+        if (Keyevent.key == SDLK_Y){
+            Accept = true;
+            // popsup = false;
+        }
+        if (Keyevent.key == SDLK_N){
+            popsup = false;
+            
+        }
+    }
+}

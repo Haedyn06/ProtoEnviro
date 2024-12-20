@@ -39,7 +39,7 @@ int main() {
 
     SDL_FRect textBox = {10.0f, 0.0f, 400.0f, 100.0f};
 
-    //Load Music
+    // Load Music
     Setup.setAudio();
     Mix_Music *music = loadmusic("assets/audio/bee.mp3");
     Mix_PlayMusic(music, -1);
@@ -55,20 +55,15 @@ int main() {
 
     SDL_SetWindowFullscreen(window, true);
 
-    // TTF_Font* fonta = TTF_OpenFont("/usr/share/fonts/TTF/DejaVuSans.ttf", 24);
-    // SDL_FRect button = {300, 250, 200, 100};
-    // bool buttonHovered = false;
-
     //Load GUI
-    GUIPopup InitialGUI(WindowX, WindowY, 50.0f);
-    SDL_FRect gui = InitialGUI.getGUI();
-    SDL_FRect buttonY = InitialGUI.getButtonY();
-    SDL_FRect buttonN = InitialGUI.getButtonN();
+    PopupGUI* popup;
+    SDL_FRect Outline, Inlined;
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); 
 
-    float slideSpeed = 3.0f;
-    bool buttonHoverY = false;
-    bool buttonHoverN = false;
-    bool clicked = false;
+    bool Accept = false;
+    bool KitchenMsg;
+    bool UpstairMsg;
+    bool OutsideMsg;
 
     // Delta time calculation variables
     Uint64 currentTime = SDL_GetTicksNS();
@@ -81,22 +76,6 @@ int main() {
         currentTime = SDL_GetTicksNS();
         deltaTime = (currentTime - previousTime) / 1e9f;
         previousTime = currentTime;
-
-
-        float mouseX;
-        float mouseY;
-        SDL_GetMouseState(&mouseX, &mouseY);
-        buttonHoverY = CheckMouseInside(buttonY, mouseX, mouseY);
-        buttonHoverN = CheckMouseInside(buttonN, mouseX, mouseY);
-        
-        if (buttonHoverY || buttonHoverN ){
-            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
-            SDL_SetCursor(handCursor);
-        } else{
-            SDL_Cursor* handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-            SDL_SetCursor(handCursor);
-        }
-
 
         //Event Handling
         while (SDL_PollEvent(&event)) {
@@ -112,24 +91,22 @@ int main() {
                     running = false;
                 }
 
+                if ((Xpos >= 1160.0f) && (Xpos <= 1550.0f) && (keyEvent.key == SDLK_RETURN) && (!Accept)){
+                    popup = new PopupGUI(WindowX, WindowY, renderer);
+                    loadPopup(UpstairMsg, Accept, popup, Outline, Inlined, "Would you like to go Upstairs?");
+                } else if ((Xpos <= -400) && (keyEvent.key == SDLK_RETURN) && (!Accept)){
+                    popup = new PopupGUI(WindowX, WindowY, renderer);
+                    loadPopup(KitchenMsg, Accept, popup, Outline, Inlined, "Would you like to go to the Kitchen?");
+                } else if ((Xpos >= 2470) && (keyEvent.key == SDLK_RETURN) && (!Accept)){
+                    popup = new PopupGUI(WindowX, WindowY, renderer);
+                    loadPopup(OutsideMsg, Accept, popup, Outline, Inlined, "Would you like to Outside?");
+                }
 
-                if ((Xpos >= 1160.0f) && (Xpos <= 1550.0f) && (keyEvent.key == SDLK_RETURN)){
-                    clicked = true;
-                    
-                } else if ((Xpos <= -400) && (keyEvent.key == SDLK_RETURN)){
-                    clicked = true;
-                } else if ((Xpos >= 2470) && (keyEvent.key == SDLK_RETURN)){
-                    clicked = true;
-                }
+                KeyDecision(UpstairMsg, keyEvent, Accept);
+                KeyDecision(KitchenMsg, keyEvent, Accept);
+                KeyDecision(OutsideMsg, keyEvent, Accept);
             }
-            
-            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
-                if ((mouseX >= buttonN.x && mouseX <= buttonN.x + buttonN.w) && (mouseY >= buttonN.y && mouseY <= buttonN.y + buttonN.h)) {
-                    std::cout << "Clicked" << std::endl;
-                    clicked = false;
-                    gui.y = WindowY + 100;
-                }
-            }
+
         }
 
         //Keyboard Controls || X= -65, 3315 Y= -10, 1300
@@ -158,7 +135,7 @@ int main() {
 
         Chpos.x = Xpos;
         Chpos.y = Ypos;
-
+        SDL_Color white = {255, 255, 255, 255};
 
 
 
@@ -183,14 +160,17 @@ int main() {
         SDL_FRect textRect = {textBox.x + 20, textBox.y + 30, (float)textSurface->w, (float)textSurface->h};
         SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
 
-
-        InitialGUI.popUp("Go to Kitchen?", clicked, slideSpeed, WindowY, renderer, buttonHoverY, buttonHoverN);
+        //GUI
+        Notif(KitchenMsg, Accept, popup, Outline, Inlined, white);
+        Notif(OutsideMsg, Accept, popup, Outline, Inlined, white);
+        Notif(UpstairMsg, Accept, popup, Outline, Inlined, white);
+        
 
         //Display Graphics
         SDL_RenderPresent(renderer);
         SDL_DestroySurface(textSurface);
         SDL_DestroyTexture(textTexture);
-        SDL_Delay(1); // Small delay to avoid maxing out CPU
+        SDL_Delay(16); // Small delay to avoid maxing out CPU
     }
 
     
