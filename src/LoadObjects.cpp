@@ -108,24 +108,33 @@ void loadPopup(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline,
     popup->setEffect(Msg, 25);
 }
 
-void Notif(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white){
+void Notif(bool& popsup, bool& Accept, PopupGUI*& popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white) {
+    if (!popsup) return; // Exit early if no popup is active
 
-    if (popsup) {
-        if (Accept) {
+    if (Accept) {
+        if (popup) {
             popup->Response();
-
-            // Check if fading is complete
             if (popup->isFadeComplete()) {
                 std::cout << "Fade complete!" << std::endl;
-                Accept = false; // Reset Accept to prevent repeated fading
-                popsup = false; // Optionally close the popup
+                Accept = false;
+                popsup = false;
+                delete popup; // Cleanup
+                popup = nullptr;
             }
         } else {
+            std::cerr << "Popup is null during Response!" << std::endl;
+        }
+    } else {
+        if (popup) {
             popup->renderGUI(Outline, Inlined);
             popup->LoadEffect(white, Inlined, 40, 40);
+        } else {
+            std::cerr << "Popup is null during render!" << std::endl;
         }
     }
 }
+
+
 
 
 void KeyDecision(bool& popsup, SDL_KeyboardEvent& Keyevent, bool& Accept){

@@ -11,71 +11,55 @@
 #include "src/BasedSetup.h"
 #include "src/LoadObjects.h"
 #include "src/GUIpopup.h"
+#include "src/PlayablePlayer.h"
+#include "src/Environments/MainHall.h"
 
 using std::string;
 using std::cout;
 
 int main() {
-
+    //Variables
     const int WindowX = 3440;
     const int WindowY = 1440;
 
     SDL_Event event;
     int running = true;
-
-    float Xpos = 2515.0f;
-    float Ypos = 570.0f;
-    const float speed = 600.0f;
+    float Xpos;
 
     //Initialization
     Initialization Setup(WindowX, WindowY);
     SDL_Renderer* renderer = Setup.getRenderer();
     SDL_Window* window = Setup.getWindow();
 
+    //Load Main Player
+    MainPlaya Characterman(renderer);
+
+    //Loads Initial Environment
+    MainHall mains(WindowX, WindowY, renderer);
+
     // Load Font
     Setup.setFont();
     std::string fontPath = "/usr/share/fonts/TTF/DejaVuSans.ttf";
     TTF_Font* font = loadFont(fontPath, 40, Setup);
-
-    SDL_FRect textBox = {10.0f, 0.0f, 400.0f, 100.0f};
-
+  
     // Load Music
     Setup.setAudio();
-    Mix_Music *music = loadmusic("assets/audio/bee.mp3");
-    Mix_PlayMusic(music, -1);
+    mains.loadMusic();
 
-    //Load Character
-    std::string filePath = "assets/images/Charlft.bmp";
-    SDL_Texture* texture = loadAsset(filePath, Setup, renderer);
-    SDL_FRect Chpos = { Xpos, Ypos, 1200.0f, 900.0f };
-    
-    //Load Background
-    std::string bgPath = "assets/images/backgrounds/FrontDoorHallway.bmp";
-    SDL_Texture* background = loadAsset(bgPath, Setup, renderer);
+    Characterman.loadCharacter(Setup, "assets/images/Charlft.bmp");
 
+    //Load Initilized Background
+    SDL_Texture* background;
+    background = mains.setBackground(Setup, renderer);
     SDL_SetWindowFullscreen(window, true);
-
-    //Load GUI
-    PopupGUI* popup;
-    SDL_FRect Outline, Inlined;
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); 
-
-    bool Accept = false;
-    bool KitchenMsg;
-    bool UpstairMsg;
-    bool OutsideMsg;
-
-    // Delta time calculation variables
-    Uint64 currentTime = SDL_GetTicksNS();
-    Uint64 previousTime = currentTime;
-    float deltaTime = 0.0f;
+    
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     while (running) {
 
-        //Smooth Movement
-        currentTime = SDL_GetTicksNS();
-        deltaTime = (currentTime - previousTime) / 1e9f;
-        previousTime = currentTime;
+        Characterman.movementSmoothness();
+        Characterman.controls();
+        Xpos = Characterman.getCharX();
 
         //Event Handling
         while (SDL_PollEvent(&event)) {
@@ -90,94 +74,25 @@ int main() {
                     std::cout << "Escape key pressed! Exiting..." << std::endl;
                     running = false;
                 }
-
-                if ((Xpos >= 1160.0f) && (Xpos <= 1550.0f) && (keyEvent.key == SDLK_RETURN) && (!Accept)){
-                    popup = new PopupGUI(WindowX, WindowY, renderer);
-                    loadPopup(UpstairMsg, Accept, popup, Outline, Inlined, "Would you like to go Upstairs?");
-                } else if ((Xpos <= -400) && (keyEvent.key == SDLK_RETURN) && (!Accept)){
-                    popup = new PopupGUI(WindowX, WindowY, renderer);
-                    loadPopup(KitchenMsg, Accept, popup, Outline, Inlined, "Would you like to go to the Kitchen?");
-                } else if ((Xpos >= 2470) && (keyEvent.key == SDLK_RETURN) && (!Accept)){
-                    popup = new PopupGUI(WindowX, WindowY, renderer);
-                    loadPopup(OutsideMsg, Accept, popup, Outline, Inlined, "Would you like to Outside?");
-                }
-
-                KeyDecision(UpstairMsg, keyEvent, Accept);
-                KeyDecision(KitchenMsg, keyEvent, Accept);
-                KeyDecision(OutsideMsg, keyEvent, Accept);
+                mains.Teleportation(WindowX, WindowY, Xpos, keyEvent);
             }
-
         }
 
-        //Keyboard Controls || X= -65, 3315 Y= -10, 1300
-        const bool* keyState = SDL_GetKeyboardState(NULL);
-        
-        // X Position
-        if (keyState[SDL_SCANCODE_LEFT] && Xpos >= -470){       
-            Xpos -= speed * deltaTime;
-            filePath = "assets/images/Charlft.bmp";
-            reloadChar(filePath, texture, renderer);
-        }
-        if (keyState[SDL_SCANCODE_RIGHT] && Xpos <= 2650){ 
-            
-            Xpos += speed * deltaTime;
-            filePath = "assets/images/CharRght.bmp";
-            reloadChar(filePath, texture, renderer);
-        }
-
-        // Y Position
-        // if (keyState[SDL_SCANCODE_UP] && Ypos >= -10){
-        //     Ypos -= speed * deltaTime;
-        // }
-        // if (keyState[SDL_SCANCODE_DOWN] && Ypos <= 1300){
-        //     Ypos += speed * deltaTime;
-        // }  
-
-        Chpos.x = Xpos;
-        Chpos.y = Ypos;
         SDL_Color white = {255, 255, 255, 255};
 
+        mains.displayBackground(background);
 
+        Characterman.displayCharacter();
 
-        //Display X and Y Position
-        string positionText = "X: " + std::to_string((int)Xpos) + "; Y: " + std::to_string((int)Ypos);
-        SDL_Color textColor = {255, 255, 255, 255};
-        SDL_Surface* textSurface = TTF_RenderText_Solid(font, positionText.c_str(), positionText.length(), textColor);
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-
-
-        // 1160-1550 = Stairs // X<-470
-        //Display Background
-        SDL_FRect bgRect = { 0.0f, 0.0f, 3440.0f, 1440.0f}; // Full window
-        SDL_RenderTexture(renderer, background, NULL, &bgRect);
-
-        //Display Character
-        SDL_RenderTexture(renderer, texture, NULL, &Chpos);
-
-        // Draw text box
-        SDL_SetRenderDrawColor(renderer,  49, 179, 233, 0);   // Blue text box
-        SDL_RenderRect(renderer, &textBox);
-        SDL_FRect textRect = {textBox.x + 20, textBox.y + 30, (float)textSurface->w, (float)textSurface->h};
-        SDL_RenderTexture(renderer, textTexture, NULL, &textRect);
-
-        //GUI
-        Notif(KitchenMsg, Accept, popup, Outline, Inlined, white);
-        Notif(OutsideMsg, Accept, popup, Outline, Inlined, white);
-        Notif(UpstairMsg, Accept, popup, Outline, Inlined, white);
+        mains.PoppedUpGUI(white);        
+        Characterman.loadCoords(font);
         
-
         //Display Graphics
         SDL_RenderPresent(renderer);
-        SDL_DestroySurface(textSurface);
-        SDL_DestroyTexture(textTexture);
         SDL_Delay(16); // Small delay to avoid maxing out CPU
     }
-
-    
-
     // Cleanup
     TTF_CloseFont(font);
-    // Mix_FreeMusic(music);
     Setup.cleanup();
 
     return 0;

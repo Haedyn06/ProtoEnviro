@@ -105,11 +105,7 @@ void PopupGUI::Fadingout(){
 
 
 void PopupGUI::Response(){
-    if (fadingOut){
-        Fadingout();
-    } else {
-        Fadingin();
-    }
+    fadingOut ? Fadingout() : Fadingin();
 }
 
 
