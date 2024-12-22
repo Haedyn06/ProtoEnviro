@@ -1,23 +1,24 @@
 #include <iostream>
-#include <cmath>
 #include <string>
 #include <thread>
 #include <chrono>
+#include <cmath>
 
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL_rect.h>
+#include <SDL3_mixer/SDL_mixer.h>
+#include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_surface.h>
-#include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3/SDL_surface.h>
-#include <SDL3_image/SDL_image.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL.h>
 
+#include "LoadObjects.h"
 #include "BasedSetup.h"
 #include "GUIpopup.h"
-#include "LoadObjects.h"
+
 
 
 using std::string;

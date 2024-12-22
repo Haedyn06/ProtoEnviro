@@ -1,17 +1,19 @@
 #include <iostream>
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-#include <SDL3_ttf/SDL_ttf.h>
+#include <string>
+
 #include <SDL3_mixer/SDL_mixer.h>
-#include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL_surface.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
-#include <string>
-#include "BasedSetup.h"
-#include "LoadObjects.h"
-#include "GUIpopup.h"
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL.h>
+
 #include "PlayablePlayer.h"
+#include "LoadObjects.h"
+#include "BasedSetup.h"
+#include "GUIpopup.h"
 
 using std::string;
 using std::cout;

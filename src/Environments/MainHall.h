@@ -1,33 +1,29 @@
 #ifndef MAINHALLh
 #define MAINHALLh
 
-#include "../GUIpopup.h"
-#include "../BasedSetup.h"
 
-class MainHall : private PopupGUI {
+#include <iostream>
+#include <vector>
+
+#include "SetupEnviro.h"
+#include "../MainLoadout/GUIpopup.h"
+#include "../MainLoadout/BasedSetup.h"
+
+
+class MainHall : protected BasedEnvironment {
 
 private:
-    SDL_Renderer* renderer;
-    bool Accept = false;
-    bool KitchenMsg;
-    bool UpstairMsg;
-    bool OutsideMsg;
-    SDL_FRect Outline, Inlined;
-    // SDL_Texture* background;
-    PopupGUI* popup;
+    bool UpstairMsg = false, KitchenMsg = false, OutsideMsg = false;
+    std::vector<bool> MsgPopups;
+    SDL_Texture* background;
 
 public:
 
-    MainHall(int windowx, int windowy, SDL_Renderer* Renderer);
-    SDL_Texture* setBackground(Initialization &Setup,  SDL_Renderer* &renderer);
-    void displayBackground(SDL_Texture* &background);
-    void Teleportation(const int& WindowX, const int& WindowY, float& Xpos, SDL_KeyboardEvent& keyEvent);
-    void PoppedUpGUI(SDL_Color white);
-    void loadMusic();
-
+    MainHall(const int &windowX, const int &windowY, Initialization &Setup, SDL_Renderer* Renderer);
+    void Teleportation(SDL_KeyboardEvent& keyEvent, float &charPosX, std::string &NewEnviro);
+    void PopupMessages(SDL_Color white);
+    void DispBg();
 
 };
-
-
 
 #endif

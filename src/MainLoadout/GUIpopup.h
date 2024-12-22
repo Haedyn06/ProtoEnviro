@@ -1,9 +1,11 @@
 #ifndef GUIPOPUPh
 #define GUIPOPUPh
 
-#include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <string>
+
+#include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3/SDL.h>
+
 
 class PopupGUI {
 private:

@@ -8,13 +8,13 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_mouse.h>
 #include <string>
-#include "src/BasedSetup.h"
-#include "src/LoadObjects.h"
-#include "src/GUIpopup.h"
+#include "../MainLoadout/BasedSetup.h"
+#include "../MainLoadout/LoadObjects.h"
+#include "../MainLoadout/GUIpopup.h"
 
 
 int main(){
-
+    
     
 
     return 0;
