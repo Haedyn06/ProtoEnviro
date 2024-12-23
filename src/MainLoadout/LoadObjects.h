@@ -18,7 +18,7 @@ bool CheckMouseInside(SDL_FRect button, int mouseX, int mouseY);
 void LoadButton(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, SDL_FRect button, bool hovered);
 void reloadChar(const std::string& filePath, SDL_Texture*& texture, SDL_Renderer* renderer);
 void loadPopup(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline, SDL_FRect& Inlined, std::string Msg);
-void Notif(bool& popsup, bool& Accept, PopupGUI* popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white);
+void Notif(bool& popsup, bool& Accept, PopupGUI*& popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white, std::string &NewEnviro, std::string EnviroType);
 void KeyDecision(bool& popsup, SDL_KeyboardEvent& Keyevent, bool& Accept, std::string &NewEnviro, std::string EnviroType);
 
 

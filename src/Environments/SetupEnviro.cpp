@@ -35,22 +35,27 @@ void BasedEnvironment::displayBackground(SDL_Texture* background){
     SDL_RenderTexture(renderer, background, NULL, &bgRect);
 }
 
+void BasedEnvironment::DestroyBg(SDL_Texture* background){
+    SDL_DestroyTexture(background);
+}
+
 void BasedEnvironment::GUIon(SDL_KeyboardEvent& keyEvent, bool &MsgType, float AreaBarrier1, float AreaBarrier2, std::string Dialogue, float &CharXpos, std::string &NewEnviro, std::string EnviroType){
     
     if ((CharXpos >= AreaBarrier1) && (CharXpos <= AreaBarrier2) && (keyEvent.key == SDLK_RETURN) && (!Accept)){
         popup = new PopupGUI(WindowX, WindowY, renderer);
         loadPopup(MsgType, Accept, popup, Outline, Inlined, Dialogue);
         std::cout << Dialogue << std::endl;
+        if (tpCompleted){
+            NewEnviro = EnviroType;
+            std::cout << "Switched to" << EnviroType << std::endl;
+        }
     }
     KeyDecision(MsgType, keyEvent, Accept, NewEnviro, EnviroType);
 
 }
 
-void BasedEnvironment::PoppedUpGUI(SDL_Color white, std::vector<bool> MsgPopups) {
-    for (std::size_t i = 0; i < MsgPopups.size(); i++) {
-        bool value = MsgPopups[i];
-        Notif(value, Accept, popup, Outline, Inlined, white);
-    }
+void BasedEnvironment::PoppedUpGUI(SDL_Color white,  bool &MsgType, std::string &NewEnviro, std::string EnviroType) {
+    Notif(MsgType, Accept, popup, Outline, Inlined, white, NewEnviro, EnviroType);
 }
 
 void BasedEnvironment::loadMusic(std::string Musictype){

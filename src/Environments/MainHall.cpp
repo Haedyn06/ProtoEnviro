@@ -16,12 +16,16 @@ using std::cout;
 
 
 
-MainHall::MainHall(const int &windowX, const int &windowY, Initialization &Setup, SDL_Renderer* Renderer)
+MainHall::MainHall(const int &windowX, const int &windowY, SDL_Renderer* Renderer)
     : BasedEnvironment(windowX, windowY, Renderer) // Call MainHall's constructor
 
 {       
-    background = setBackground(Setup, "assets/images/backgrounds/FrontDoorHallway.bmp");
+    
     //loadMusic("assets/audio/bee.mp3");
+}
+
+SDL_Texture* MainHall::Setbg(Initialization &Setup){
+    return setBackground(Setup, "assets/images/backgrounds/FrontDoorHallway.bmp");
 }
 
 void MainHall::Teleportation(SDL_KeyboardEvent& keyEvent, float &charPosX, std::string &NewEnviro){
@@ -31,11 +35,17 @@ void MainHall::Teleportation(SDL_KeyboardEvent& keyEvent, float &charPosX, std::
     std::cout << KitchenMsg << ", " <<  UpstairMsg<< ", " << OutsideMsg << std::endl;
 }
 
-void MainHall::PopupMessages(SDL_Color white) {
-    MsgPopups = {UpstairMsg, KitchenMsg, OutsideMsg};
-    PoppedUpGUI(white, MsgPopups);
+void MainHall::PopupMessages(SDL_Color white, std::string &NewEnviro) {
+    PoppedUpGUI(white, UpstairMsg, NewEnviro, "Upstairs");
+    PoppedUpGUI(white, KitchenMsg, NewEnviro, "Kitchen");
+    PoppedUpGUI(white, OutsideMsg, NewEnviro, "Outside");
 }
 
-void MainHall::DispBg() {
+
+void MainHall::DispBg(SDL_Texture* background) {
     displayBackground(background);
 }
+void MainHall::Deletbg(SDL_Texture* background){
+    DestroyBg(background);
+}
+

@@ -32,6 +32,12 @@ SDL_Texture* loadAsset(std::string filePath, Initialization &Setup, SDL_Renderer
     return texture;
 }
 
+
+
+//SDL_Surface* surface = SDL_LoadBMP("path/to/newBackground.bmp");
+// SDL_Texture* newTexture = SDL_CreateTextureFromSurface(renderer, surface);
+// SDL_DestroySurface(surface);
+
 SDL_Texture* loadBG(std::string BGPath, Initialization &Setup, SDL_Renderer* renderer){
     SDL_Texture* background = IMG_LoadTexture(renderer, BGPath.c_str());
     Setup.setTexture(background);
@@ -112,34 +118,38 @@ void loadPopup(bool& popsup, bool& Accept, PopupGUI* &popup, SDL_FRect& Outline,
     popup->setEffect(Msg, 25);
 }
 
-void Notif(bool& popsup, bool& Accept, PopupGUI* popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white) {
+void Notif(bool& popsup, bool& Accept, PopupGUI*& popup, SDL_FRect& Outline, SDL_FRect& Inlined, SDL_Color& white, std::string &NewEnviro, std::string EnviroType) {
     if (!popsup) return; // Exit early if no popup is active
-    //BUG CANT FIX MIGHT FIX SOON
-    if (popsup){
-        if (Accept) {
-            
-            if (popsup) {
-                popup->Response();
-                if (popup->isFadeComplete()) {
-                    std::cout << "Fade complete!" << std::endl;
-                    // delete popup; // Cleanup
-                    Accept = false;
-                    popsup = false;
-                }
-            } else {
-                std::cerr << "Popup is null during Response!" << std::endl;
+
+    if (Accept) {
+        // std::cout << "Loaded Accept" << std::endl;
+        if (popup) {
+            popup->Response();
+            if (popup->isFadeComplete()) {
+                std::cout << "Fade complete!" << std::endl;
+                NewEnviro = EnviroType;
+                Accept = false;
+                popsup = false;
+                delete popup; // Cleanup
+                popup = nullptr;
+
+
             }
         } else {
-            if (popup && popsup) {
-                popup->renderGUI(Outline, Inlined);
-                popup->LoadEffect(white, Inlined, 40, 40);
-            } else {
-                std::cerr << "Popup is null during render!" << std::endl;
-            }
+            std::cerr << "Popup is null during Response!" << std::endl;
+            popsup = false;
+            std::cout << popsup << std::endl;
+        }
+    } else {
+        if (popup) {
+            popup->renderGUI(Outline, Inlined);
+            popup->LoadEffect(white, Inlined, 40, 40);
+        } else {
+            // std::cerr << "Popup is null during render!" << std::endl;
+            // popsup = false;
+            // std::cout << popsup << std::endl;
         }
     }
-
-    
 }
 
 
@@ -149,7 +159,7 @@ void KeyDecision(bool& popsup, SDL_KeyboardEvent& Keyevent, bool& Accept, std::s
     if (popsup){
         if (Keyevent.key == SDLK_Y){
             Accept = true;
-            NewEnviro = EnviroType;
+            // NewEnviro = EnviroType;
         }
         if (Keyevent.key == SDLK_N){
             popsup = false;
